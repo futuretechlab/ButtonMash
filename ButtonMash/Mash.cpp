@@ -1,9 +1,10 @@
 #include "Mash.h"
 
-Bounce debouncer = Bounce();
+
 
 Mash::Mash()
 {
+	debouncer = Bounce();
 	_buttonPressed = 1;
 	_buttonReleased = 0;
 	debounceInterval = 50;
@@ -14,6 +15,7 @@ Mash::Mash()
 
 void Mash::attach(int pin, bool isActiveLow)
 {
+	_pin = pin;
 	Serial.print(pin);
 	Serial.println(" Attached");
 	debouncer.attach(pin);
@@ -66,41 +68,42 @@ void Mash::update()
 	}
 
 	if (CurrentState != LastState) {
-		//Serial.println("State change detected");
+		//Serial.print("State change detected on ");
+		//Serial.println(_pin);
 		switch (CurrentState)
 		{
 		case UnPressed:
-			Serial.println("UnPressed");
+			//Serial.println("UnPressed");
 			if(UnpressCallback != NULL)
 				UnpressCallback();
 			break;
 		case PressedDown:
-			Serial.println("PressedDown");
+			//Serial.println("PressedDown");
 			if (PressDownCallback != NULL)
 				PressDownCallback();
 			break;
 		case PressedUp:
-			Serial.println("PressedUp");
+			//Serial.println("PressedUp");
 			if (PressUpCallback != NULL)
 				PressUpCallback();
 			break;
 		case DoublePressedDown:
-			Serial.println("DoublePressedDown");
+			//Serial.println("DoublePressedDown");
 			if (DoublePressDownCallback != NULL)
 				DoublePressDownCallback();
 			break;
 		case DoublePressedUp:
-			Serial.println("DoublePressedUp");
+			//Serial.println("DoublePressedUp");
 			if (DoublePressUpCallback != NULL)
 				DoublePressUpCallback();
 			break;
 		case PressAndHoldDown:
-			Serial.println("PressAndHoldDown");
+			//Serial.println("PressAndHoldDown");
 			if (PressAndHoldDownCallback != NULL)
 				PressAndHoldDownCallback();
 			break;
 		case PressAndHoldUp:
-			Serial.println("PressAndHoldUp");
+			//Serial.println("PressAndHoldUp");
 			if (PressAndHoldUpCallback != NULL)
 				PressAndHoldUpCallback();
 			break;

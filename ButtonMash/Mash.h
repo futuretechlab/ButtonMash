@@ -28,6 +28,7 @@ enum MomentaryStates {
 class Mash
 {
 private:
+	Bounce debouncer;
 	int _pin; // pin address
 	int _buttonReleased; // Released value 1/0
 	int _buttonPressed; // Pressed value 1/0

@@ -9,7 +9,7 @@
 #include "Mash.h"
 
 Mash mash2;
-//Mash mash3;
+Mash mash3;
 //Mash mashes[] = { mash2, mash3 };
 //Combo combo23 = Combo(mashes);
 
@@ -20,21 +20,23 @@ void setup() {
 	Serial.begin(9600);
 	Serial.println("Setup started!");
 	pinMode(2, INPUT);
-	//pinMode(3, INPUT);
+	pinMode(3, INPUT);
 	mash2.attach(2, false);
-	//mash3.attach(3, false);
+	mash3.attach(3, false);
 	/*mash2.ComboState = PressedDown;
 	mash3.ComboState = PressedDown;
 	combo23.OnCombo(MyComboCallback);*/
+	
+	mash3.OnPressDown(MyPressDownCallback3);
 	mash2.OnPressDown(MyPressDownCallback2);
-	//mash3.OnPressDown(MyPressDownCallback3);
 	Serial.println("Setup complete!");
 }
 
 // the loop function runs over and over again until power down or reset
 void loop() {
+	mash3.update();
 	mash2.update();
-	//mash3.update();
+	
 	//combo23.update();
 	/*int b2 = digitalRead(2);
 	int b3 = digitalRead(3);
