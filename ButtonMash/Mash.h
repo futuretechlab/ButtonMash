@@ -10,12 +10,13 @@
 #endif
 
 #include <Bounce2.h>
+#include <stdio.h>
 
 extern "C" {
 	typedef void(*Callback)(void);
 }
 
-enum MomentaryStates {
+enum MashStates {
 	UnPressed,
 	PressedDown,
 	PressedUp,
@@ -29,13 +30,12 @@ class Mash
 {
 private:
 	Bounce debouncer;
-	int _pin; // pin address
-	int _buttonReleased; // Released value 1/0
-	int _buttonPressed; // Pressed value 1/0
-	volatile uint16_t debounceInterval;
-	volatile uint16_t doublePressInterval;
-	volatile uint16_t holdInterval;
-	volatile uint16_t pressDownTime;
+	uint8_t _buttonReleased; // Released value 1/0
+	uint8_t _buttonPressed; // Pressed value 1/0
+	volatile unsigned long debounceInterval;
+	volatile unsigned long doublePressInterval;
+	volatile unsigned long holdInterval;
+	volatile unsigned long pressDownTime;
 	Callback PressUpCallback;
 	Callback PressDownCallback;
 	Callback DoublePressUpCallback;
@@ -45,11 +45,11 @@ private:
 	Callback UnpressCallback;
 public:
 	Mash();
-	MomentaryStates CurrentState;
-	MomentaryStates LastState;
-	MomentaryStates ComboState;
-	void attach(int pin, bool isActiveLow);
-	void update();
+	uint8_t _pin; // pin address
+	MashStates CurrentState;
+	MashStates LastState;
+	void Attach(int pin, bool isActiveLow);
+	void Update();
 	void DebounceInterval(uint16_t interval_millis);
 	void HoldInterval(uint16_t interval_millis);
 	void DoublePressInterval(uint16_t interval_millis);
@@ -60,18 +60,31 @@ public:
 	void OnPressAndHoldDown(Callback callback);
 	void OnPressAndHoldUp(Callback callback);
 	void OnUnpress(Callback callback);
-	void SetComboState(MomentaryStates state);
+};
+
+class Simul {
+private:
+	Mash* Mashes[20]; // Ten fingers ten toes
+	Callback SimulCallback;
+	uint8_t simulLen;
+	bool simulFired;
+	MashStates SimulState;
+public:
+	Simul(MashStates simulState);
+	void Attach(Mash *mash);
+	void OnSimul(Callback callback);
+	void Update();
 };
 
 class Combo {
-private:
-	Mash *Mashes;
-	Callback ComboCallback;
-	int comboLen;
 public:
-	Combo(Mash mashes[]);
+	Combo(byte length);
+	bool Part(int part);
 	void OnCombo(Callback callback);
-	void update();
+private:
+	int comboLen;
+	int previousPart;
+	Callback ComboCallback;
 };
 
 #endif

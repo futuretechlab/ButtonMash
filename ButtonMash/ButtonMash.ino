@@ -8,58 +8,100 @@
 
 #include "Mash.h"
 
-Mash mash2;
-Mash mash3;
-//Mash mashes[] = { mash2, mash3 };
-//Combo combo23 = Combo(mashes);
-
-//int lb2 = 0;
-//int lb3 = 0;
+Mash mashB;
+Mash mashA;
+Simul simulAB = Simul(PressedDown);
+Simul simulHoldAB = Simul(PressAndHoldDown);
+Combo comboS1 = Combo(3);
+Combo comboS2 = Combo(3);
+const int A = 2;
+const int B = 3;
 
 void setup() {
 	Serial.begin(9600);
 	Serial.println("Setup started!");
-	pinMode(2, INPUT);
-	pinMode(3, INPUT);
-	mash2.attach(2, false);
-	mash3.attach(3, false);
-	/*mash2.ComboState = PressedDown;
-	mash3.ComboState = PressedDown;
-	combo23.OnCombo(MyComboCallback);*/
+
+	// Set pins to input
+	pinMode(A, INPUT);
+	pinMode(B, INPUT);
+
+	// Attach pins to mash
+	mashB.Attach(A, false);
+	mashA.Attach(B, false);
+
+	// Set mash callbacks
+	mashB.OnPressDown(MyPressDownCallbackB);
+	mashA.OnPressDown(MyPressDownCallbackA);
+	mashB.OnPressAndHoldDown(MyPressAndHoldDownCallbackB);
+	mashA.OnPressAndHoldDown(MyPressAndHoldDownCallbackA);
+
+	// Attach mashes to simuls
+	simulAB.Attach(&mashB);
+	simulAB.Attach(&mashA);
+	simulHoldAB.Attach(&mashB);
+	simulHoldAB.Attach(&mashA);
+
+	// Set simul callbacks
+	simulAB.OnSimul(MySimulCallback);
+	simulHoldAB.OnSimul(MySimulHoldCallback);
 	
-	mash3.OnPressDown(MyPressDownCallback3);
-	mash2.OnPressDown(MyPressDownCallback2);
+	// Set combo callbacks
+	comboS1.OnCombo(MyComboCallbackS1);
+	comboS2.OnCombo(MyComboCallbackS2);
 	Serial.println("Setup complete!");
 }
 
 // the loop function runs over and over again until power down or reset
 void loop() {
-	mash3.update();
-	mash2.update();
-	
-	//combo23.update();
-	/*int b2 = digitalRead(2);
-	int b3 = digitalRead(3);
-	if (lb2 != b2)
-		Serial.println("Button 2 pressed!");
-
-	if (lb3 != b3)
-		Serial.println("Button 3 pressed!");
-	lb2 = b2;
-	lb3 = b3;*/
+	// Call update() for all mashes/simuls
+	mashA.Update();
+	mashB.Update();
+	simulAB.Update();
+	simulHoldAB.Update();
 }
 
-void MyComboCallback()
+void MySimulCallback()
 {
-	Serial.println("Combo callback fired!");
+	Serial.println("Simul AB press down fired!");
 }
 
-void MyPressDownCallback2()
+void MySimulHoldCallback()
 {
-	Serial.println("Button 2 pressed!");
+	Serial.println("Simul AB press and hold down fired!");
 }
 
-void MyPressDownCallback3()
+void MyPressDownCallbackA()
 {
-	Serial.println("Button 3 pressed!");
+	comboS2.Part(1);
+	comboS1.Part(0);
+	Serial.println("A pressed down!");
+}
+
+void MyPressDownCallbackB()
+{
+	comboS1.Part(1);
+	Serial.println("B pressed down!");
+}
+
+void MyPressAndHoldDownCallbackA()
+{
+	comboS2.Part(2);
+	Serial.println("A held down!");
+}
+
+void MyComboCallbackS1()
+{
+	comboS2.Part(0);
+	Serial.println(" A, B-, Combo FIRED!!!");
+}
+
+void MyPressAndHoldDownCallbackB()
+{
+	comboS1.Part(2);
+	Serial.println("B held down!");
+}
+
+void MyComboCallbackS2()
+{
+	Serial.println("A, B-, A-, Combo FIRED!!!");
 }

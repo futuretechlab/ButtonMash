@@ -1,7 +1,5 @@
 #include "Mash.h"
 
-
-
 Mash::Mash()
 {
 	debouncer = Bounce();
@@ -13,13 +11,10 @@ Mash::Mash()
 	debouncer.interval(debounceInterval);
 }
 
-void Mash::attach(int pin, bool isActiveLow)
+void Mash::Attach(int pin, bool isActiveLow)
 {
 	_pin = pin;
-	Serial.print(pin);
-	Serial.println(" Attached");
 	debouncer.attach(pin);
-	
 	if (isActiveLow)
 	{
 		_buttonPressed = 0;
@@ -28,7 +23,7 @@ void Mash::attach(int pin, bool isActiveLow)
 
 }
 
-void Mash::update()
+void Mash::Update()
 {
 	/*Serial.print(millis());
 	Serial.println(" - update called.");*/
@@ -37,14 +32,14 @@ void Mash::update()
 	if (debouncer.read() == _buttonPressed)
 	{
 		if (CurrentState == UnPressed) {
-			if (millis() - pressDownTime < doublePressInterval) {
+			if (millis() - pressDownTime < doublePressInterval && DoublePressDownCallback != NULL) {
 				CurrentState = DoublePressedDown;
 			}
 			else
 			{
 				CurrentState = PressedDown;
-				pressDownTime = millis();
 			}
+			pressDownTime = millis();
 		}
 		else if (CurrentState == PressedDown && millis() - pressDownTime > holdInterval) {
 			CurrentState = PressAndHoldDown;
@@ -68,42 +63,33 @@ void Mash::update()
 	}
 
 	if (CurrentState != LastState) {
-		//Serial.print("State change detected on ");
-		//Serial.println(_pin);
 		switch (CurrentState)
 		{
 		case UnPressed:
-			//Serial.println("UnPressed");
 			if(UnpressCallback != NULL)
 				UnpressCallback();
 			break;
 		case PressedDown:
-			//Serial.println("PressedDown");
 			if (PressDownCallback != NULL)
 				PressDownCallback();
 			break;
 		case PressedUp:
-			//Serial.println("PressedUp");
 			if (PressUpCallback != NULL)
 				PressUpCallback();
 			break;
 		case DoublePressedDown:
-			//Serial.println("DoublePressedDown");
 			if (DoublePressDownCallback != NULL)
 				DoublePressDownCallback();
 			break;
 		case DoublePressedUp:
-			//Serial.println("DoublePressedUp");
 			if (DoublePressUpCallback != NULL)
 				DoublePressUpCallback();
 			break;
 		case PressAndHoldDown:
-			//Serial.println("PressAndHoldDown");
 			if (PressAndHoldDownCallback != NULL)
 				PressAndHoldDownCallback();
 			break;
 		case PressAndHoldUp:
-			//Serial.println("PressAndHoldUp");
 			if (PressAndHoldUpCallback != NULL)
 				PressAndHoldUpCallback();
 			break;
@@ -164,15 +150,66 @@ void Mash::OnUnpress(Callback callback)
 	UnpressCallback = callback;
 }
 
-void Mash::SetComboState(MomentaryStates state)
+Simul::Simul(MashStates simulState)
 {
-	ComboState = state;
+	SimulState = simulState;
+	simulLen = 0;
 }
 
-Combo::Combo(Mash mashes[])
+void Simul::Attach(Mash *mash)
 {
-	Mashes = mashes;
-	comboLen = sizeof(mashes) / sizeof(*mashes);
+	if (simulLen >= 9) return;
+	Mashes[simulLen] = mash;
+	simulLen++;
+}
+
+void Simul::OnSimul(Callback callback)
+{
+	SimulCallback = callback;
+}
+
+void Simul::Update()
+{
+	Mash *m;
+	int i = 0;
+	while ((m = Mashes[i]) != NULL)
+	{
+		if (Mashes[i]->CurrentState != SimulState)
+		{
+			simulFired = false;
+			return;
+		}
+		i++;
+	}
+	if(SimulCallback != NULL && !simulFired)
+		SimulCallback();
+	simulFired = true;
+}
+
+Combo::Combo(byte length)
+{
+	comboLen = length;
+	previousPart = -1;
+}
+
+bool Combo::Part(int p)
+{
+	// out of range
+	if (p > comboLen || previousPart + 1 != p)
+	{
+		previousPart = -1;
+		return false;
+	}
+
+	previousPart = p;
+
+	if (p == comboLen - 1)
+	{
+		previousPart = -1;
+		if(ComboCallback != NULL)
+			ComboCallback();
+	}
+	return true;
 }
 
 void Combo::OnCombo(Callback callback)
@@ -180,10 +217,3 @@ void Combo::OnCombo(Callback callback)
 	ComboCallback = callback;
 }
 
-void Combo::update()
-{
-	for (int i = 0; i < comboLen; i++)
-		if (Mashes[i].CurrentState != Mashes[i].ComboState) return;
-	if(ComboCallback != NULL)
-		ComboCallback();
-}
