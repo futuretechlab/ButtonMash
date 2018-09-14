@@ -6,7 +6,7 @@ Mash::Mash()
 	_buttonReleased = LOW;
 	debounceDelay = 30;
 	doublePressInterval = 700;
-	holdInterval = 5000;
+	holdInterval = 2000;
 }
 
 void Mash::Attach(int pin, bool isActiveLow)
@@ -190,11 +190,12 @@ Simul::Simul(MashStates simulState)
 	simulLen = 0;
 }
 
-void Simul::Attach(Mash mash)
+void Simul::Attach(Mash *mash)
 {
-	if (simulLen >= 9) return;
-	Mashes[simulLen] = &mash;
-	simulLen++;
+  if (simulLen >= 9) return;
+  Mashes[simulLen] = mash;
+  simulLen++;
+  
 }
 
 void Simul::OnSimul(Callback callback)
@@ -208,8 +209,11 @@ void Simul::Update()
 	int i = 0;
 	while ((m = Mashes[i]) != NULL)
 	{
-		if (Mashes[i]->CurrentState != SimulState)
+		if (m->CurrentState != SimulState)
 		{
+//      Serial.print(i);
+//      Serial.print("=");
+//      Serial.println(m->CurrentState);
 			simulFired = false;
 			return;
 		}

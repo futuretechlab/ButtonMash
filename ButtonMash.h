@@ -92,14 +92,14 @@ public:
 
 class Simul {
 private:
-	Mash * Mashes[20]; // Ten fingers ten toes
+	Mash *Mashes[20]; // Ten fingers ten toes
 	Callback SimulCallback;
 	uint8_t simulLen;
 	bool simulFired;
 	MashStates SimulState;
 public:
 	Simul(MashStates simulState);
-	void Attach(Mash mash);
+	void Attach(Mash *mash);
 	void OnSimul(Callback callback);
 	void Update();
 };

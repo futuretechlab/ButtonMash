@@ -17,12 +17,12 @@ Simul simulAB = Simul(PressedDown);
 Simul simulHoldAB = Simul(PressAndHoldDown);
 
 // Combo allows you to tag other callbacks to create sequence dependant callbacks
-// Three part combo:
-// A, hold B, hold A
-Combo combo1 = Combo(3);
+// Two part combo:
+// A, hold B
+Combo combo1 = Combo(2);
 // Three part combo, with combo1 as the first part to form a daisy chain:
-// Combo1, A, B, A+B
-Combo combo2 = Combo(4);
+// Combo1, A, B
+Combo combo2 = Combo(3);
 
 // Button pins
 const int A = 2;
@@ -33,12 +33,12 @@ void setup() {
 	Serial.println("Setup started!");
 
 	// Set pins to input
-	pinMode(A, INPUT);
-	pinMode(B, INPUT);
+	pinMode(A, INPUT_PULLUP);
+	pinMode(B, INPUT_PULLUP);
 
 	// Attach pins to mash
-	mashB.Attach(A, false);
-	mashA.Attach(B, false);
+	mashB.Attach(A, true);
+	mashA.Attach(B, true);
 
 	// Set mash callbacks
 	mashB.OnPressDown(MyPressDownCallbackB);
@@ -47,10 +47,10 @@ void setup() {
 	mashA.OnPressAndHoldDown(MyPressAndHoldDownCallbackA);
 
 	// Attach mashes to simuls
-	simulAB.Attach(mashB);
-	simulAB.Attach(mashA);
-	simulHoldAB.Attach(mashB);
-	simulHoldAB.Attach(mashA);
+	simulAB.Attach(&mashB);
+	simulAB.Attach(&mashA);
+	simulHoldAB.Attach(&mashB);
+	simulHoldAB.Attach(&mashA);
 
 	// Set simul callbacks
 	simulAB.OnSimul(MySimulCallback);
@@ -96,7 +96,6 @@ void MyPressDownCallbackB()
 
 void MyPressAndHoldDownCallbackA()
 {
-	combo1.Part(2);
 	Serial.println("A held down!");
 }
 
@@ -108,11 +107,11 @@ void MyPressAndHoldDownCallbackB()
 
 void MyComboCallback1()
 {
-	combo2.Part(0);
-	Serial.println("A, hold B, hold A = Combo1 FIRED!!!");
+	combo2.Part(0); // Start combo2
+	Serial.println("A, hold B = Combo1 FIRED!!!");
 }
 
 void MyComboCallback2()
 {
-	Serial.println("Combo1, A, B, A+B = Combo2 FIRED!!!");
+	Serial.println("Combo1, A, B = Combo2 FIRED!!!");
 }
