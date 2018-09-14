@@ -1,19 +1,30 @@
 /*
- Name:		ButtonMash.ino
- Created:	11/30/2017 11:20:40
- Author:	FTL
+Name:		ButtonMash.ino
+Created:	11/30/2017 11:20:40
+Author:	FTL
 */
 
-// the setup function runs once when you press reset or power the board
+#include "ButtonMash.h"
 
-#include "Mash.h"
+// Class instances
 
+// Mash handels single press state detection and triggers single button callbacks
 Mash mashB;
 Mash mashA;
+
+// Simul handles muliple press state detection and triggers multi-button callbacks
 Simul simulAB = Simul(PressedDown);
 Simul simulHoldAB = Simul(PressAndHoldDown);
-Combo comboS1 = Combo(3);
-Combo comboS2 = Combo(3);
+
+// Combo allows you to tag other callbacks to create sequence dependant callbacks
+// Three part combo:
+// A, hold B, hold A
+Combo combo1 = Combo(3);
+// Three part combo, with combo1 as the first part to form a daisy chain:
+// Combo1, A, B, A+B
+Combo combo2 = Combo(4);
+
+// Button pins
 const int A = 2;
 const int B = 3;
 
@@ -36,22 +47,21 @@ void setup() {
 	mashA.OnPressAndHoldDown(MyPressAndHoldDownCallbackA);
 
 	// Attach mashes to simuls
-	simulAB.Attach(&mashB);
-	simulAB.Attach(&mashA);
-	simulHoldAB.Attach(&mashB);
-	simulHoldAB.Attach(&mashA);
+	simulAB.Attach(mashB);
+	simulAB.Attach(mashA);
+	simulHoldAB.Attach(mashB);
+	simulHoldAB.Attach(mashA);
 
 	// Set simul callbacks
 	simulAB.OnSimul(MySimulCallback);
 	simulHoldAB.OnSimul(MySimulHoldCallback);
-	
+
 	// Set combo callbacks
-	comboS1.OnCombo(MyComboCallbackS1);
-	comboS2.OnCombo(MyComboCallbackS2);
+	combo1.OnCombo(MyComboCallback1);
+	combo2.OnCombo(MyComboCallback2);
 	Serial.println("Setup complete!");
 }
 
-// the loop function runs over and over again until power down or reset
 void loop() {
 	// Call update() for all mashes/simuls
 	mashA.Update();
@@ -62,7 +72,8 @@ void loop() {
 
 void MySimulCallback()
 {
-	Serial.println("Simul AB press down fired!");
+	combo2.Part(3);
+	Serial.println("Simul A+B press down fired!");
 }
 
 void MySimulHoldCallback()
@@ -72,36 +83,36 @@ void MySimulHoldCallback()
 
 void MyPressDownCallbackA()
 {
-	comboS2.Part(1);
-	comboS1.Part(0);
+	combo1.Part(0);
+	combo2.Part(1);
 	Serial.println("A pressed down!");
 }
 
 void MyPressDownCallbackB()
 {
-	comboS1.Part(1);
+	combo2.Part(2);
 	Serial.println("B pressed down!");
 }
 
 void MyPressAndHoldDownCallbackA()
 {
-	comboS2.Part(2);
+	combo1.Part(2);
 	Serial.println("A held down!");
-}
-
-void MyComboCallbackS1()
-{
-	comboS2.Part(0);
-	Serial.println(" A, B-, Combo FIRED!!!");
 }
 
 void MyPressAndHoldDownCallbackB()
 {
-	comboS1.Part(2);
+	combo1.Part(1);
 	Serial.println("B held down!");
 }
 
-void MyComboCallbackS2()
+void MyComboCallback1()
 {
-	Serial.println("A, B-, A-, Combo FIRED!!!");
+	combo2.Part(0);
+	Serial.println("A, hold B, hold A = Combo1 FIRED!!!");
+}
+
+void MyComboCallback2()
+{
+	Serial.println("Combo1, A, B, A+B = Combo2 FIRED!!!");
 }

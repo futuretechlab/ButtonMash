@@ -1,35 +1,70 @@
-#include "Mash.h"
+#include "ButtonMash.h"
 
 Mash::Mash()
 {
-	debouncer = Bounce();
-	_buttonPressed = 1;
-	_buttonReleased = 0;
-	debounceInterval = 50;
+	_buttonPressed = HIGH;
+	_buttonReleased = LOW;
+	debounceDelay = 30;
 	doublePressInterval = 700;
 	holdInterval = 5000;
-	debouncer.interval(debounceInterval);
 }
 
 void Mash::Attach(int pin, bool isActiveLow)
 {
 	_pin = pin;
-	debouncer.attach(pin);
 	if (isActiveLow)
 	{
-		_buttonPressed = 0;
-		_buttonReleased = 1;
+		_buttonPressed = LOW;
+		_buttonReleased = HIGH;
+	}
+	buttonState = _buttonReleased;
+	lastButtonState = _buttonReleased;
+}
+
+uint8_t Mash::Debounce() {
+	
+#if defined(BLOCKING_DEBOUNCE) && BLOCKING_DEBOUNCE == true
+	uint8_t reading = digitalRead(_pin);
+
+	if (reading != lastButtonState)
+	{
+		lastButtonState = reading;
+		delay(debounceDelay);
+		reading = digitalRead(_pin);
+		if (reading == lastButtonState)
+		{
+			buttonState = reading;
+		}
 	}
 
+	return buttonState;
+#else
+	uint8_t reading = digitalRead(_pin);
+	if (reading != lastButtonState)
+	{
+		lastDebounceTime = millis();
+	}
+
+	if ((millis() - lastDebounceTime) > debounceDelay)
+	{
+		if (reading != buttonState)
+		{
+			buttonState = reading;
+		}
+	}
+
+	lastButtonState = reading;
+
+	return buttonState;
+#endif
 }
 
 void Mash::Update()
 {
-	/*Serial.print(millis());
-	Serial.println(" - update called.");*/
-	debouncer.update();
+	if (_pin == NULL)
+		return;
 	LastState = CurrentState;
-	if (debouncer.read() == _buttonPressed)
+	if (this->Debounce() == _buttonPressed)
 	{
 		if (CurrentState == UnPressed) {
 			if (millis() - pressDownTime < doublePressInterval && DoublePressDownCallback != NULL) {
@@ -66,7 +101,7 @@ void Mash::Update()
 		switch (CurrentState)
 		{
 		case UnPressed:
-			if(UnpressCallback != NULL)
+			if (UnpressCallback != NULL)
 				UnpressCallback();
 			break;
 		case PressedDown:
@@ -99,10 +134,9 @@ void Mash::Update()
 	}
 }
 
-void Mash::DebounceInterval(uint16_t interval_millis)
+void Mash::DebounceDelay(uint16_t interval_millis)
 {
-	debounceInterval = interval_millis;
-	debouncer.interval(debounceInterval);
+	debounceDelay = interval_millis;
 }
 
 void Mash::HoldInterval(uint16_t interval_millis)
@@ -156,10 +190,10 @@ Simul::Simul(MashStates simulState)
 	simulLen = 0;
 }
 
-void Simul::Attach(Mash *mash)
+void Simul::Attach(Mash mash)
 {
 	if (simulLen >= 9) return;
-	Mashes[simulLen] = mash;
+	Mashes[simulLen] = &mash;
 	simulLen++;
 }
 
@@ -181,7 +215,7 @@ void Simul::Update()
 		}
 		i++;
 	}
-	if(SimulCallback != NULL && !simulFired)
+	if (SimulCallback != NULL && !simulFired)
 		SimulCallback();
 	simulFired = true;
 }
@@ -194,7 +228,7 @@ Combo::Combo(byte length)
 
 bool Combo::Part(int p)
 {
-	// out of range
+	// out of range or sequence
 	if (p > comboLen || previousPart + 1 != p)
 	{
 		previousPart = -1;
@@ -206,7 +240,7 @@ bool Combo::Part(int p)
 	if (p == comboLen - 1)
 	{
 		previousPart = -1;
-		if(ComboCallback != NULL)
+		if (ComboCallback != NULL)
 			ComboCallback();
 	}
 	return true;

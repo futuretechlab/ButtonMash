@@ -1,0 +1,43 @@
+#######################################
+# Syntax Coloring Map For ButtonMash
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+Mash	KEYWORD1
+Simul	KEYWORD1
+Combo	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+Attach	KEYWORD2
+Update	KEYWORD2
+DebounceDelay	KEYWORD2
+HoldInterval	KEYWORD2
+DoublePressInterval	KEYWORD2
+OnPressDown	KEYWORD2
+OnPressUp	KEYWORD2
+OnDoublePressDown	KEYWORD2
+OnDoublePressUp	KEYWORD2
+OnPressAndHoldDown	KEYWORD2
+OnPressAndHoldUp	KEYWORD2
+OnUnpress	KEYWORD2
+OnSimul	KEYWORD2
+Part	KEYWORD2
+OnCombo	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+UnPressed	LITERAL1
+PressedDown	LITERAL1
+PressedUp	LITERAL1
+DoublePressedDown	LITERAL1
+DoublePressedUp	LITERAL1
+PressAndHoldDown	LITERAL1
+PressAndHoldUp	LITERAL1
